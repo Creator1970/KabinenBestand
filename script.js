@@ -45,6 +45,7 @@ loadBestaende();
         "Dawi Event",
         "Mobiclo up",
         "Mobiclo Green",
+        "Mobiclo Standart",
         "Dufti",
         "Classic",
         "Boxi",
