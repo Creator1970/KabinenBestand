@@ -1,5 +1,17 @@
 console.log("script gestartet");
+const supabaseUrl =
+    "https://jpmfhyectqzaxupbgche.supabase.co";
 
+const supabaseKey =
+    "sb_publishable_9vZDzjnLAJJbir0wVO_nhw_7rqtLDXg";
+
+const supabaseClient =
+    window.supabase.createClient(
+        supabaseUrl,
+        supabaseKey
+    );
+
+console.log("SUPABASE CLIENT:", supabaseClient);
 document.addEventListener("DOMContentLoaded", () => {
 
     const mapObject = document.getElementById("austriaMap");
