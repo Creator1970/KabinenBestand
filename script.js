@@ -227,14 +227,19 @@ async function loadBestaende() {
     console.log("GESENDET:", datensatz);
     console.log("DATA:", data);
     console.log("ERROR:", error);
+if (error) {
 
-    if (error) {
+    console.log("SUPABASE ERROR:", error);
 
-        alert("SUPABASE FEHLER");
-        return;
+    alert(
+        "SUPABASE FEHLER: " +
+        error.message
+    );
 
-    }
+    return;
 
+}
+   
     await loadBestaende();
 
     alert("Datensatz gespeichert");
