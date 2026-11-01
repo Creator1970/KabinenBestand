@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const bestaende = [];
 
     let aktuellerStandort = "";
-
+loadBestaende();
     const kabinentypen = [
         "Toi Water",
         "Toi Water up",
@@ -50,7 +50,38 @@ document.addEventListener("DOMContentLoaded", () => {
         graz: ["steiermark"],
         hall: ["tirol"]
     };
+async function loadBestaende() {
 
+    const { data, error } =
+        await supabaseClient
+            .from("bestand")
+            .select("*");
+
+    if (error) {
+
+        console.error("LOAD ERROR:", error);
+        return;
+
+    }
+
+    bestaende.length = 0;
+
+    data.forEach(e => {
+
+        bestaende.push({
+            standort: e.standort,
+            kw: String(e.kw),
+            kabinentyp: e.kabinentyp,
+            bestand: e.bestand
+        });
+
+    });
+
+    console.log("BESTAENDE GELADEN:", bestaende);
+
+    aktualisiereAnzeige();
+
+}
     // KW Listen
     for (let i = 1; i <= 52; i++) {
 
@@ -99,13 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         bestaende.forEach(e => {
 
-            gesamt[e.typ] += e.anzahl;
+            gesamt[e.kabinentyp] += e.bestand;
 
             if (
                 e.standort === aktuellerStandort &&
                 e.kw == anzeigeKW.value
             ) {
-                standort[e.typ] += e.anzahl;
+                standort[e.kabinentyp] += e.bestand;
             }
 
         });
@@ -141,52 +172,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Speichern
-    saveBtn.addEventListener("click", () => {
+ saveBtn.addEventListener("click", async () => {
 
-        const datensatz = {
-            standort: standortSelect.value,
-            kw: kwSelect.value,
-            typ: typSelect.value,
-            anzahl: Number(
-                document.getElementById("anzahl").value
+    const datensatz = {
+        standort: standortSelect.value.toLowerCase(),
+        kw: Number(kwSelect.value),
+        kabinentyp: typSelect.value,
+        bestand: Number(
+            document.getElementById("anzahl").value
+        )
+    };
+
+    if (
+        !datensatz.standort ||
+        !datensatz.kw ||
+        !datensatz.kabinentyp ||
+        !datensatz.bestand
+    ) {
+
+        alert("Bitte alle Felder ausfüllen");
+        return;
+    }
+
+    const { data, error } =
+        await supabaseClient
+            .from("bestand")
+            .upsert(
+                [datensatz],
+                {
+                    onConflict:
+                        "standort,kw,kabinentyp"
+                }
             )
-        };
+            .select();
 
-        if (
-            !datensatz.standort ||
-            !datensatz.kw ||
-            !datensatz.typ ||
-            !datensatz.anzahl
-        ) {
+    console.log("GESENDET:", datensatz);
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
 
-            alert("Bitte alle Felder ausfüllen");
-            return;
-        }
+    if (error) {
 
-        const index =
-            bestaende.findIndex(e =>
-                e.standort === datensatz.standort &&
-                e.kw === datensatz.kw &&
-                e.typ === datensatz.typ
-            );
+        alert("SUPABASE FEHLER");
+        return;
 
-        if (index >= 0) {
+    }
 
-            bestaende[index] = datensatz;
+    await loadBestaende();
 
-        } else {
+    alert("Datensatz gespeichert");
 
-            bestaende.push(datensatz);
-
-        }
-
-        console.log("Bestände:", bestaende);
-
-        aktualisiereAnzeige();
-
-        alert("Bestand gespeichert");
-
-    });
+});
 
     // KW Filter für Anzeige
     anzeigeKW.addEventListener("change", () => {
